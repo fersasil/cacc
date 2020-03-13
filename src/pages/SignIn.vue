@@ -9,6 +9,7 @@
     <div>
       <label for>Senha</label>
       <input v-model="password" type="text" />
+      
     </div>
 
     <p>Token: {{token}}</p>
@@ -40,11 +41,22 @@ export default {
         });
 
         data = res.data;
+
       } catch (err) {
         alert("Erro");
       }
 
-      this.token = data.token;
+      if(data == null) return;
+
+
+      const userData = {
+        username: this.username,
+        token: data.token
+      }
+
+
+      //  this.$store.dispatch('login', userData);
+      this.$store.dispatch("signin", userData);
 
     }
   }
