@@ -37,7 +37,7 @@ export default new Vuex.Store({
         authUser(state, payload) {
             state.token = payload.token;
             state.userID = payload.userID;
-            state.userName = payload.username;
+            state.username = payload.username;
         },
         wipeUserInfo(state) {
             state.token = null;
@@ -47,26 +47,36 @@ export default new Vuex.Store({
 
     },
     actions: {
-        isLoggedIn({ commit }) {
+        isLoggedIn() {
             const encodedData = localStorage.getItem("data");
 
-            if (!encodedData) {
-                return
+            if(encodedData == null) return false;
+
+            let data;
+
+            try{
+                const decodedData = atob(encodedData);
+                data = JSON.parse(decodedData);
             }
-
-            const decodedData = atob(encodedData);
-            const data = JSON.parse(decodedData);
+            catch(err) {
+                throw new Error("erro");
+            }
+            
             data.expiresIn = new Date(data.expiresIn);
-
             const now = new Date();
 
             // console.log(JSON.parse(data))
             if (now >= data.expiresIn) {
-                //wipe localstorage
-                return;
-            }
+                localStorage.removeItem("data");
+                // router.replace({ name: 'signin' });
 
-            commit('authUser', data);
+                return false;
+            }
+            
+            // commit('authUser', data);
+            
+            return true;
+
             // router.push({ name: 'Dashboard' });
         },
         setLogoutTimer({ dispatch }, expiresIn) {
@@ -74,7 +84,7 @@ export default new Vuex.Store({
                 dispatch('logout')
             }, expiresIn * 1000);
         },
-        async signup({ commit, dispatch }, newUserData) {
+        async signup({ dispatch }, newUserData) {
             let data;
             try {
                 const res = await axios
@@ -87,30 +97,64 @@ export default new Vuex.Store({
                 console.log(err);
             }
 
-            if(data == null) return;
+            if (data == null) return;
 
+            
+
+            dispatch('authUser', data);
+
+            router.push({ name: "Dashboard" });
+        },
+
+        async authUser({commit, dispatch}, userData){
             const userInfo = {
-                userneme: data.username,
-                token: data.token,
-                userID: data.userID
+                userneme: userData.username,
+                token: userData.token,
+                userID: userData.userID
             }
+
+            userInfo.expiresIn = 3600;
 
             commit('authUser', userInfo);
 
-            // router.push({ name: "Dashboard" });
-            dispatch('setLogoutTimer', data.expiresIn);
+            dispatch('setLogoutTimer', userInfo.expireIn);
 
-            userInfo.expiresIn = data.expiresIn;
             saveLocalStorage(userInfo);
-
         },
 
         async signin({ commit, dispatch }, authData) {
-            console.log(authData)
-           
-            commit('authUser', authData);
+            let data;
+
+            try {
+                const res = await axios.get("/signin", {
+                    params: {
+                        username: authData.username,
+                        password: authData.password
+                    }
+                });
+
+                data = res.data;
+
+            } catch (err) {
+                throw new LoginError({status: err.response.status});
+            }
+
+ 
+            if (data == null) return;
+            
+            const user = {
+                token: data.token,
+                username: authData.username
+            }
+            
+            commit('authUser', user);
 
             router.push({ name: "dashboard" });
+            
+            user.expiresIn = 3600;
+            
+            saveLocalStorage(user);
+
             dispatch('setLogoutTimer', 3600);
 
         },
@@ -138,3 +182,14 @@ export default new Vuex.Store({
         }
     }
 });
+
+
+function LoginError(detail) {
+    this.name = 'LoginError';
+    this.message = detail || 'Mensagem de erro padrão';
+    this.stack = (new Error()).stack;
+  
+  LoginError.prototype = Object.create(LoginError.prototype);
+  LoginError.prototype.constructor = LoginError;
+}
+  
