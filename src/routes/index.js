@@ -9,6 +9,12 @@ import Dashboard from '@/pages/Dashboard'
 
 Vue.use(Router);
 
+
+
+//TODO move to a separate file
+// import * as guard from "../middleware/guard";
+
+
 export default new Router({
     routes: [{
         path: '/',
@@ -19,15 +25,18 @@ export default new Router({
         path: '/dashboard',
         name: 'dashboard',
         component: Dashboard,
+        // beforeEnter: guard.authUser
     }, 
     {
         path: '/entrar',
         name: 'sign-in',
         component: SignIn,
+        // beforeEnter: guard.userNotAllowedWhenAuthenticated
     },
     {
         path: '/registrar',
         name: 'sign-up',
         component: SignUp,
+        // beforeEnter: guard.userNotAllowedWhenAuthenticated
     },
 ]})

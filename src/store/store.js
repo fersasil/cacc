@@ -68,14 +68,14 @@ export default new Vuex.Store({
             // console.log(JSON.parse(data))
             if (now >= data.expiresIn) {
                 localStorage.removeItem("data");
-                // router.replace({ name: 'signin' });
+                // router.router.replace({ name: 'signin' });
 
                 return false;
             }
             
             // commit('authUser', data);
             
-            return true;
+            return data;
 
             // router.push({ name: 'Dashboard' });
         },
@@ -115,14 +115,16 @@ export default new Vuex.Store({
 
             userInfo.expiresIn = 3600;
 
-            commit('authUser', userInfo);
-
             dispatch('setLogoutTimer', userInfo.expireIn);
+
+            commit('authUser', userInfo);
+            
+            console.log("OIIII")
 
             saveLocalStorage(userInfo);
         },
 
-        async signin({ commit, dispatch }, authData) {
+        async signin({ dispatch }, authData) {
             let data;
 
             try {
@@ -146,17 +148,14 @@ export default new Vuex.Store({
                 token: data.token,
                 username: authData.username
             }
-            
-            commit('authUser', user);
 
-            router.push({ name: "dashboard" });
+            console.log("iu")
             
             user.expiresIn = 3600;
+
+            dispatch("authUser", user)
             
-            saveLocalStorage(user);
-
-            dispatch('setLogoutTimer', 3600);
-
+            router.push({ name: "dashboard" });
         },
 
         logout({ commit }) {
@@ -164,12 +163,12 @@ export default new Vuex.Store({
             //wipe storage too
             localStorage.removeItem("data");
 
-            router.replace({ name: 'Home' });
+            // router.replace("/");
         },
     },
     getters: {
         userLoggedIn(state) {
-            return state.userID ? true : false;
+            return state.token ? true : false;
         },
         getUserName(state) {
             return state.username;
