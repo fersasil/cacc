@@ -1,46 +1,55 @@
 <template>
   <div>
-      <h1>Ola</h1>
+    <h1>Login</h1>
+    <div>
+      <label for>Username</label>
+      <input v-model="username" type="text" />
+    </div>
 
-      <div class="b">
-        <label class="a" for="">Email</label>
-        <input v-bind="email" type="text">
-      </div>
+    <div>
+      <label for>Senha</label>
+      <input v-model="password" type="text" />
+    </div>
 
-      <div class="b">
-        <label class="a" for="">Password</label>
-        <input v-model="password" type="text"> {{email}}
-      </div>
+    <p>Token: {{token}}</p>
 
-      <div class="btn">
-        <button @click="login">Login</button>
-      </div>
+    <button @click="login">Entrar</button>
   </div>
 </template>
 
 <script>
+import { axiosNormal as axios } from "../util/axios";
+
 export default {
   data() {
     return {
-      email: "",
-      password: ""
-    }
+      username: "",
+      password: "",
+      token: ""
+    };
   },
   methods: {
-    login() {
-      alert(this.password)
+    async login() {
+      let data;
+      try {
+        const res = await axios.get("/signin", {
+          params: {
+            username: this.username,
+            password: this.password
+          }
+        });
+
+        data = res.data;
+      } catch (err) {
+        alert("Erro");
+      }
+
+      this.token = data.token;
+
     }
   }
-}
+};
 </script>
 
 <style>
-.a{
-  margin-right: 10px;
-  margin-bottom: 10px;
-}
-.b{
-  margin-right: 10px;
-  margin-bottom: 10px;
-}
 </style>
